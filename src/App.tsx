@@ -170,7 +170,7 @@ function App() {
       setResults(JSON.stringify(parseFhirPath(expression).eval(JSON.parse(resource)), undefined, 2));
       setError(false);
     } catch (err) {
-      setResults(err.message);
+      setResults((err as Error).message);
       setError(true);
     }
   }, [expression, resource]);
