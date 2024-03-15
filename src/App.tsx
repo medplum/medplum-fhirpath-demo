@@ -1,4 +1,4 @@
-import { parseFhirPath } from "@medplum/fhirpath";
+import { evalFhirPath, parseFhirPath } from "@medplum/core";
 import React, { useEffect, useState } from "react";
 import "./App.css";
 
@@ -157,7 +157,7 @@ function App() {
     try {
       setResults(
         JSON.stringify(
-          parseFhirPath(expression).eval(JSON.parse(resource)),
+          evalFhirPath(expression, JSON.parse(resource)),
           undefined,
           2
         )
