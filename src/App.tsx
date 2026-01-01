@@ -1,8 +1,10 @@
-import { evalFhirPath, parseFhirPath } from "@medplum/core";
-import React, { useEffect, useState } from "react";
+import { evalFhirPath } from "@medplum/core";
+import { useEffect, useState } from "react";
 import "./App.css";
 
-const DEFAULT_EXPRESSION = "Patient.name.where(use='usual').given.first()";
+const DEFAULT_CONTEXT_EXPRESSION = "name";
+const DEFAULT_EXPRESSION =
+  "trace('trc').given.join(' ').combine(family).join(', ')";
 const DEFAULT_RESOURCE = {
   resourceType: "Patient",
   id: "example",
@@ -146,6 +148,9 @@ const DEFAULT_RESOURCE = {
 };
 
 function App() {
+  const [contextExpression, setContextExpression] = useState(
+    DEFAULT_CONTEXT_EXPRESSION
+  );
   const [expression, setExpression] = useState(DEFAULT_EXPRESSION);
   const [resource, setResource] = useState(
     JSON.stringify(DEFAULT_RESOURCE, undefined, 2)
@@ -155,24 +160,32 @@ function App() {
 
   useEffect(() => {
     try {
+      let context = JSON.parse(resource);
+      if (contextExpression) {
+        context = evalFhirPath(contextExpression, context);
+      }
       setResults(
-        JSON.stringify(
-          evalFhirPath(expression, JSON.parse(resource)),
-          undefined,
-          2
-        )
+        JSON.stringify(evalFhirPath(expression, context), undefined, 2)
       );
       setError(false);
     } catch (err) {
       setResults((err as Error).message);
       setError(true);
     }
-  }, [expression, resource]);
+  }, [contextExpression, expression, resource]);
 
   return (
     <div className="App">
       <header className="App-header">
+        <label htmlFor="context-input">Context Expression (optional):</label>
         <input
+          id="context-input"
+          value={contextExpression}
+          onChange={(e) => setContextExpression(e.target.value)}
+        />
+        <label htmlFor="expression-input">FHIRpath Expression:</label>
+        <input
+          id="expression-input"
           value={expression}
           onChange={(e) => setExpression(e.target.value)}
         />
